@@ -9,7 +9,6 @@ struct ContentView: View {
     @StateObject private var store = ConversationStore.shared
     @StateObject private var chatService: ChatServiceHolder = ChatServiceHolder()
     @State private var conversationPath: [UUID] = []
-    @State private var showingPrivacyPolicy = false
 
     var body: some View {
         Group {
@@ -47,20 +46,12 @@ struct ContentView: View {
     }
 
     private var privacyBanner: some View {
-        Button {
-            showingPrivacyPolicy = true
-        } label: {
-            Text("Private. On-device only.")
-                .font(.system(size: 11, weight: .regular))
-                .foregroundStyle(CompassTheme.textTertiary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(CompassTheme.background)
-        }
-        .buttonStyle(.plain)
-        .sheet(isPresented: $showingPrivacyPolicy) {
-            PrivacyPolicyView()
-        }
+        Text("Private. On-device only.")
+            .font(.system(size: 11, weight: .regular))
+            .foregroundStyle(CompassTheme.textTertiary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(CompassTheme.background)
     }
 }
 

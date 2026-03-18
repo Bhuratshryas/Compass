@@ -64,10 +64,14 @@ final class ChatViewModel: ObservableObject {
                 }
             }
 
+            // Preserve context: format prior messages in this chat so the model can follow the conversation.
+            let priorMessages = messages.dropLast(1) // exclude the current user message we just appended
+            let conversationContext = Self.formatConversationContext(Array(priorMessages))
+
             let base = text.isEmpty ? defaultImageQuestion : text
             let wordCount = text.split(whereSeparator: { $0.isWhitespace }).count
 
-            // Build a set of prompt variants. The model sees these; the user never does.
+            // Build a set of prompt variants for the first message; with context we send only the user's prompt once.
             var prompts: [String] = []
             if wordCount > 0 && wordCount <= 3 {
                 prompts.append("What is a \(base)?")
@@ -79,7 +83,7 @@ final class ChatViewModel: ObservableObject {
                 prompts.append("Please answer this clearly and in detail: \(base)")
             }
 
-            let response = await bestResponse(prompts: prompts, imageContext: imageContext)
+            let response = await bestResponse(prompts: prompts, imageContext: imageContext, conversationContext: conversationContext)
             await animateAssistantResponse(response)
         }
     }
@@ -137,17 +141,38 @@ final class ChatViewModel: ObservableObject {
         }
     }
 
-    /// Fire all prompt variants in parallel, return the first good response.
-    /// If none are good, return the longest one. If all fail, return a fallback message.
-    private func bestResponse(prompts: [String], imageContext: String?) async -> String {
-        let service = chatService
+    /// Format prior messages into a string for conversation context (last 10 messages to limit size).
+    private static func formatConversationContext(_ messages: [ChatMessage]) -> String? {
+        let limited = messages.suffix(10)
+        guard !limited.isEmpty else { return nil }
+        let lines = limited.map { msg in
+            let label = msg.role == .user ? "User" : "Assistant"
+            return "\(label): \(msg.content)"
+        }
+        return lines.joined(separator: "\n")
+    }
 
-        // Run all prompts concurrently; collect results as they arrive.
+    /// Fire all prompt variants in parallel when no context; with context, send once to preserve conversation.
+    /// If none are good, return the longest one. If all fail, return a fallback message.
+    private func bestResponse(prompts: [String], imageContext: String?, conversationContext: String?) async -> String {
+        let service = chatService
+        let hasContext = conversationContext.map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty } ?? false
+
+        if hasContext {
+            // Preserve context: one request with the user's prompt and prior conversation; no session reset.
+            let prompt = prompts.first ?? ""
+            guard let reply = try? await service.respond(to: prompt, imageContext: imageContext, conversationContext: conversationContext) else {
+                return "I wasn't able to answer that. Please try rephrasing your question."
+            }
+            return reply
+        }
+
+        // No prior context: run variants in parallel (each with a fresh session).
         let results: [(String, String?)] = await withTaskGroup(of: (String, String?).self, returning: [(String, String?)].self) { group in
             for prompt in prompts {
                 group.addTask {
                     service.resetSession()
-                    let reply = try? await service.respond(to: prompt, imageContext: imageContext)
+                    let reply = try? await service.respond(to: prompt, imageContext: imageContext, conversationContext: nil)
                     return (prompt, reply)
                 }
             }
@@ -158,12 +183,10 @@ final class ChatViewModel: ObservableObject {
             return collected
         }
 
-        // Pick the best: first good response (long enough, not a refusal).
         let replies = results.compactMap { $0.1 }
         if let good = replies.first(where: { isGoodResponse($0) }) {
             return good
         }
-        // If no "good" one, take the longest non-empty one.
         if let longest = replies.filter({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
             .max(by: { $0.count < $1.count }) {
             return longest

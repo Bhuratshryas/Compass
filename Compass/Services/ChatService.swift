@@ -15,7 +15,7 @@ import FoundationModels
 protocol ChatServiceProtocol: Sendable {
     func isAvailable() -> Bool
     func availabilityMessage() -> String
-    func respond(to prompt: String, imageContext: String?) async throws -> String
+    func respond(to prompt: String, imageContext: String?, conversationContext: String?) async throws -> String
     func resetSession()
 }
 
@@ -26,16 +26,19 @@ final class ChatService: ChatServiceProtocol {
 
     func availabilityMessage() -> String { "" }
 
-    func respond(to prompt: String, imageContext: String?) async throws -> String {
+    func respond(to prompt: String, imageContext: String?, conversationContext: String?) async throws -> String {
         await Task.detached {
-            self.generateResponse(prompt: prompt, imageContext: imageContext)
+            self.generateResponse(prompt: prompt, imageContext: imageContext, conversationContext: conversationContext)
         }.value
     }
 
     func resetSession() {}
 
-    private func generateResponse(prompt: String, imageContext: String?) -> String {
-        let input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+    private func generateResponse(prompt: String, imageContext: String?, conversationContext: String?) -> String {
+        var input = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let ctx = conversationContext?.trimmingCharacters(in: .whitespacesAndNewlines), !ctx.isEmpty {
+            input = "Previous conversation:\n\(ctx)\n\nCurrent question: \(input)"
+        }
         let hasImage = imageContext != nil && !(imageContext?.isEmpty ?? true)
 
         // If there is no text at all, give a gentle nudge.
@@ -133,21 +136,24 @@ final class AppleIntelligenceChatService: ChatServiceProtocol, @unchecked Sendab
         }
     }
 
-    func respond(to prompt: String, imageContext: String?) async throws -> String {
+    func respond(to prompt: String, imageContext: String?, conversationContext: String?) async throws -> String {
         guard model.isAvailable else {
             throw NSError(domain: "Compass", code: -1, userInfo: [NSLocalizedDescriptionKey: availabilityMessage()])
         }
         if session == nil {
             session = LanguageModelSession(model: model, instructions: { Instructions(instructions) })
         }
-            guard let session else {
-                throw NSError(domain: "Compass", code: -2, userInfo: [NSLocalizedDescriptionKey: "Session unavailable."])
+        guard let session else {
+            throw NSError(domain: "Compass", code: -2, userInfo: [NSLocalizedDescriptionKey: "Session unavailable."])
         }
-        let fullPrompt: String
+        var fullPrompt: String
         if let imageContext = imageContext?.trimmingCharacters(in: .whitespacesAndNewlines), !imageContext.isEmpty {
             fullPrompt = "The user shared an image. Context: \(imageContext). User question or request: \(prompt)"
         } else {
             fullPrompt = prompt
+        }
+        if let ctx = conversationContext?.trimmingCharacters(in: .whitespacesAndNewlines), !ctx.isEmpty {
+            fullPrompt = "Previous conversation:\n\(ctx)\n\nCurrent request: \(fullPrompt)"
         }
         let response = try await session.respond(to: Prompt(fullPrompt))
         return response.content

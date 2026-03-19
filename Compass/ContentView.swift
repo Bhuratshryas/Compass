@@ -66,7 +66,7 @@ struct UnavailableView: View {
         ZStack {
             CompassTheme.background.ignoresSafeArea()
             VStack(spacing: 20) {
-                Text("Compass")
+                Text("Compass - Local AI")
                     .font(.system(.title2, design: .default).weight(.semibold))
                     .foregroundStyle(CompassTheme.textPrimary)
                 Text("Everything runs on your device. We don't collect your data.")

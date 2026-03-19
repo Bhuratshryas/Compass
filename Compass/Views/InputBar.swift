@@ -12,6 +12,7 @@ struct InputBar: View {
     var isDisabled: Bool
     var autoFocus: Bool
     var onSend: () -> Void
+    var onStop: () -> Void
 
     @FocusState private var isFocused: Bool
 
@@ -20,13 +21,15 @@ struct InputBar: View {
         attachedImage: Binding<ChatMessage.ImageAttachment?>,
         isDisabled: Bool,
         autoFocus: Bool = false,
-        onSend: @escaping () -> Void
+        onSend: @escaping () -> Void,
+        onStop: @escaping () -> Void
     ) {
         _text = text
         _attachedImage = attachedImage
         self.isDisabled = isDisabled
         self.autoFocus = autoFocus
         self.onSend = onSend
+        self.onStop = onStop
     }
 
     var body: some View {
@@ -60,16 +63,33 @@ struct InputBar: View {
                     .background(CompassTheme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: CompassTheme.inputRadius))
 
-                Button(action: { onSend() }) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 28))
-                        .foregroundStyle(canSend ? CompassTheme.primary : CompassTheme.textTertiary)
-                        .opacity(canSend ? 1 : 0.5)
-                        .frame(width: 40, height: 40)
-                        .contentShape(Rectangle())
+                if isDisabled {
+                    Button(action: { onStop() }) {
+                        HStack(spacing: 6) {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text("Stop")
+                                .font(.system(size: 15, weight: .semibold))
+                        }
+                        .foregroundStyle(CompassTheme.textPrimary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(CompassTheme.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Button(action: { onSend() }) {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundStyle(canSend ? CompassTheme.primary : CompassTheme.textTertiary)
+                            .opacity(canSend ? 1 : 0.5)
+                            .frame(width: 40, height: 40)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!canSend || isDisabled)
                 }
-                .buttonStyle(.plain)
-                .disabled(!canSend || isDisabled)
             }
             .padding(.horizontal, CompassTheme.paddingH)
             .padding(.vertical, 10)

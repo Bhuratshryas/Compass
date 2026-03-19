@@ -30,7 +30,8 @@ struct ChatView: View {
                 attachedImage: $viewModel.attachedImage,
                 isDisabled: viewModel.isLoading,
                 autoFocus: viewModel.messages.isEmpty,
-                onSend: viewModel.send
+                onSend: viewModel.send,
+                onStop: viewModel.stop
             )
             .accessibilityHint(viewModel.messages.isEmpty ? "Start the conversation" : "Ask another question in this thread")
         }
@@ -38,7 +39,7 @@ struct ChatView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("Compass")
+                Text("Compass - Local AI")
                     .font(.system(.headline, design: .default).weight(.semibold))
                     .foregroundStyle(CompassTheme.textPrimary)
             }
@@ -62,6 +63,24 @@ struct ChatView: View {
                     ForEach(viewModel.messages) { message in
                         MessageBubble(message: message)
                             .transition(.move(edge: message.role == .user ? .trailing : .leading).combined(with: .opacity))
+                    }
+                    if viewModel.isLoading {
+                        HStack {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                    .controlSize(.small)
+                                Text("Thinking…")
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundStyle(CompassTheme.textTertiary)
+                            }
+                            .padding(.vertical, 10)
+                            .padding(.horizontal, 12)
+                            .background(CompassTheme.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                            Spacer()
+                        }
+                        .padding(.top, 6)
+                        .transition(.opacity)
                     }
                     Color.clear.frame(height: 16).id("bottom")
                 }

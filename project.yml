@@ -18,6 +18,7 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         GENERATE_INFOPLIST_FILE: true
         INFOPLIST_KEY_CFBundleDisplayName: "Compass - Local AI"
+        PRODUCT_NAME: "Compass - Local AI"
         INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "Compass - Local AI uses photos you choose so you can ask questions about them. We do not store or send your images anywhere."
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: true
         INFOPLIST_KEY_UILaunchScreen_Generation: true

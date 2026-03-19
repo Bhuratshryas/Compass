@@ -20,7 +20,7 @@ struct HomeView: View {
     }
 
     private var header: some View {
-        Text("Compass")
+        Text("Compass - Local AI")
             .font(.system(.title2, design: .default).weight(.semibold))
             .foregroundStyle(CompassTheme.textPrimary)
             .frame(maxWidth: .infinity)

@@ -43,7 +43,7 @@ final class ChatService: ChatServiceProtocol {
 
         // If there is no text at all, give a gentle nudge.
         if input.isEmpty && !hasImage {
-            return "Ask me anything. Compass keeps your questions and answers entirely on your device. No data is collected or sent to the cloud."
+            return "Ask me anything. Compass - Local AI keeps your questions and answers entirely on your device. No data is collected or sent to the cloud."
         }
         // Combine user question with image (OCR) context when both are present.
         let effectiveInput: String
@@ -78,29 +78,29 @@ final class ChatService: ChatServiceProtocol {
         let questionRef = "You asked: \"\(input)\". "
 
         if lower.contains("privacy") || lower.contains("data") || lower.contains("collect") {
-            return questionRef + "Compass is built for privacy. We don't collect your data, we don't use it, and we don't run models in the cloud. Everything runs locally on your device. Your questions and answers never leave your phone."
+            return questionRef + "Compass - Local AI is built for privacy. We don't collect your data, we don't use it, and we don't run models in the cloud. Everything runs locally on your device. Your questions and answers never leave your phone."
         }
         if lower.contains("search") || lower.contains("eco") || lower.contains("compass") {
-            return questionRef + "Compass is a privacy-first search and chat assistant. We focus on clarity and trust. All processing happens on your device using standard Apple frameworks. No tracking, no cloud models."
+            return questionRef + "Compass - Local AI is a privacy-first search and chat assistant. We focus on clarity and trust. All processing happens on your device using standard Apple frameworks. No tracking, no cloud models."
         }
         if lower.contains("hello") || lower.contains("hi") || lower.contains("hey") {
-            return questionRef + "Hello. I'm Compass. Ask me anything and I'll do my best to help, while keeping everything on your device."
+            return questionRef + "Hello. I'm Compass - Local AI. Ask me anything and I'll do my best to help, while keeping everything on your device."
         }
         if lower.contains("help") || lower.contains("how") {
             return questionRef + "Type your question and tap send. You can also attach an image to ask about it. Everything runs on your device. We never send your data anywhere."
         }
         if lower.contains("what") && (lower.contains("weather") || lower.contains("temperature")) {
-            return questionRef + "I can explain how weather works in general, but Compass doesn't access live internet or location data. For current conditions, use the Weather app; for understanding concepts like temperature, climate, or forecasts, I can walk you through them."
+            return questionRef + "I can explain how weather works in general, but Compass - Local AI doesn't access live internet or location data. For current conditions, use the Weather app; for understanding concepts like temperature, climate, or forecasts, I can walk you through them."
         }
         if lower.contains("who") || lower.contains("when") || lower.contains("where") || lower.contains("why") {
             let keywordStr = keywords.prefix(3).joined(separator: ", ")
-            return questionRef + "Here's some guidance about \(keywordStr.isEmpty ? "that topic" : keywordStr). Compass runs entirely on your device with no cloud lookup, so answers are based on general knowledge, not live data. I'll give you a clear, helpful explanation."
+            return questionRef + "Here's some guidance about \(keywordStr.isEmpty ? "that topic" : keywordStr). Compass - Local AI runs entirely on your device with no cloud lookup, so answers are based on general knowledge, not live data. I'll give you a clear, helpful explanation."
         }
 
         // General text questions: answer directly, then note privacy. Keeps text Q&A helpful.
         let keywordStr = keywords.prefix(3).joined(separator: ", ")
         let topic = keywordStr.isEmpty ? "that" : keywordStr
-        return questionRef + "Here’s a direct answer about \"\(topic)\": I’ll do my best to explain clearly. All of this runs on your device—nothing is sent to the cloud. For deeper or more detailed answers, turn on Apple Intelligence in Settings when your device supports it."
+        return questionRef + "Here’s a direct answer about \"\(topic)\": I’ll do my best to explain clearly. All of this runs on your device—nothing is sent to the cloud. For deeper or more detailed answers, turn on Apple Intelligence in Settings when your device supports Compass - Local AI."
     }
 }
 
@@ -111,7 +111,7 @@ final class AppleIntelligenceChatService: ChatServiceProtocol, @unchecked Sendab
     private let model = SystemLanguageModel.default
     private var session: LanguageModelSession?
     private let instructions = """
-        You are Compass, a helpful, concise assistant built into a privacy-first app. \
+        You are Compass - Local AI, a helpful, concise assistant built into a privacy-first app. \
         You run entirely on the user's device using Apple Intelligence. \
         Never mention that you are a language model. Answer questions clearly and briefly. \
         If the user shares context about an image, use that when relevant. \
@@ -126,7 +126,7 @@ final class AppleIntelligenceChatService: ChatServiceProtocol, @unchecked Sendab
         case .unavailable(.deviceNotEligible):
             return "Apple Intelligence isn't supported on this device. Use a supported iPhone or iPad with Apple Intelligence."
         case .unavailable(.appleIntelligenceNotEnabled):
-            return "Turn on Apple Intelligence in Settings to use Compass with full answers."
+            return "Turn on Apple Intelligence in Settings to use Compass - Local AI with full answers."
         case .unavailable(.modelNotReady):
             return "Apple Intelligence is still getting ready. Try again in a moment."
         case .unavailable:

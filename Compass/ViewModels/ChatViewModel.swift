@@ -20,6 +20,7 @@ final class ChatViewModel: ObservableObject {
     private let chatService: ChatServiceProtocol
     private let store: ConversationStore
     private var didCreateTitle = false
+    private var inFlightTask: Task<Void, Never>?
 
     init(chatService: ChatServiceProtocol, store: ConversationStore, conversationId: UUID, initialMessages: [ChatMessage] = []) {
         self.chatService = chatService
@@ -30,6 +31,9 @@ final class ChatViewModel: ObservableObject {
 
     /// Send a message and append the response. Thread supports multiple Q&A in one conversation; messages are never cleared until the user starts a new chat.
     func send() {
+        // Cancel any previous in-flight work before starting a new request.
+        inFlightTask?.cancel()
+
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty || attachedImage != nil else { return }
 
@@ -54,7 +58,7 @@ final class ChatViewModel: ObservableObject {
             saveToStore(title: title)
         }
 
-        Task {
+        inFlightTask = Task {
             // When there's an image, always run Apple's OCR and send that text as image context.
             var imageContext: String? = nil
             if let imageToSend {
@@ -83,12 +87,36 @@ final class ChatViewModel: ObservableObject {
                 prompts.append("Please answer this clearly and in detail: \(base)")
             }
 
+            if Task.isCancelled {
+                await MainActor.run {
+                    isLoading = false
+                    saveToStore()
+                }
+                return
+            }
+
             let response = await bestResponse(prompts: prompts, imageContext: imageContext, conversationContext: conversationContext)
+            if Task.isCancelled {
+                await MainActor.run {
+                    isLoading = false
+                    saveToStore()
+                }
+                return
+            }
             await animateAssistantResponse(response)
         }
     }
 
+    func stop() {
+        inFlightTask?.cancel()
+        inFlightTask = nil
+        isLoading = false
+        saveToStore()
+    }
+
     func clearChat() {
+        inFlightTask?.cancel()
+        inFlightTask = nil
         chatService.resetSession()
         messages = []
         errorMessage = nil
@@ -128,6 +156,7 @@ final class ChatViewModel: ObservableObject {
         }
 
         for (index, word) in words.enumerated() {
+            if Task.isCancelled { break }
             try? await Task.sleep(nanoseconds: 40_000_000) // 40ms per word
             await MainActor.run {
                 guard let i = messages.firstIndex(where: { $0.id == message.id }) else { return }

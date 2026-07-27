@@ -379,7 +379,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.1;
+				MARKETING_VERSION = 5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.camoulabs.CompassLocal;
 				PRODUCT_NAME = "Compass - Local AI";
 				SDKROOT = iphoneos;
@@ -464,7 +464,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.1;
+				MARKETING_VERSION = 5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.camoulabs.CompassLocal;
 				PRODUCT_NAME = "Compass - Local AI";
 				SDKROOT = iphoneos;

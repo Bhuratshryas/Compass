@@ -9,6 +9,7 @@ struct HomeView: View {
     @ObservedObject var store: ConversationStore
     @Binding var conversationPath: [UUID]
     var onNewChat: () -> Void
+    var onOpenSettings: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -20,12 +21,24 @@ struct HomeView: View {
     }
 
     private var header: some View {
-        Text("Compass - Local AI")
-            .font(.system(.title2, design: .default).weight(.semibold))
-            .foregroundStyle(CompassTheme.textPrimary)
-            .frame(maxWidth: .infinity)
-            .padding(.top, 20)
-            .padding(.bottom, 8)
+        ZStack {
+            Text("Compass - Local AI")
+                .font(.system(.title2, design: .default).weight(.semibold))
+                .foregroundStyle(CompassTheme.textPrimary)
+            HStack {
+                Spacer()
+                Button(action: onOpenSettings) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 18, weight: .regular))
+                        .foregroundStyle(CompassTheme.textSecondary)
+                }
+                .accessibilityLabel("Settings")
+            }
+            .padding(.trailing, CompassTheme.paddingH)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 20)
+        .padding(.bottom, 8)
     }
 
     private var searchBar: some View {

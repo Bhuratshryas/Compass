@@ -19,6 +19,7 @@ final class ChatViewModel: ObservableObject {
     let conversationId: UUID
     private let chatService: ChatServiceProtocol
     private let store: ConversationStore
+    private let memory: ConversationMemory
     private var didCreateTitle = false
     private var inFlightTask: Task<Void, Never>?
 
@@ -27,6 +28,7 @@ final class ChatViewModel: ObservableObject {
         self.store = store
         self.conversationId = conversationId
         self.messages = initialMessages
+        self.memory = ConversationMemory(reasoner: ReasonerFactory.make())
     }
 
     /// Send a message and append the response. Thread supports multiple Q&A in one conversation; messages are never cleared until the user starts a new chat.
@@ -58,6 +60,14 @@ final class ChatViewModel: ObservableObject {
             saveToStore(title: title)
         }
 
+        // Build runtime config on the main actor before entering the pipeline.
+        let base = text.isEmpty ? defaultImageQuestion : text
+        let config = OrchestrationConfig(
+            webSearchEnabled: AppSettings.shared.webSearchEnabled,
+            isOnline: NetworkMonitor.shared.isOnline,
+            provider: SearchProviderFactory.make()
+        )
+
         inFlightTask = Task {
             // When there's an image, always run Apple's OCR and send that text as image context.
             var imageContext: String? = nil
@@ -68,24 +78,21 @@ final class ChatViewModel: ObservableObject {
                 }
             }
 
-            // Preserve context: format prior messages in this chat so the model can follow the conversation.
-            let priorMessages = messages.dropLast(1) // exclude the current user message we just appended
-            let conversationContext = Self.formatConversationContext(Array(priorMessages))
-
-            let base = text.isEmpty ? defaultImageQuestion : text
-            let wordCount = text.split(whereSeparator: { $0.isWhitespace }).count
-
-            // Build a set of prompt variants for the first message; with context we send only the user's prompt once.
-            var prompts: [String] = []
-            if wordCount > 0 && wordCount <= 3 {
-                prompts.append("What is a \(base)?")
-                prompts.append("Can you share more about \(base)?")
-                prompts.append("Explain \(base) in simple terms.")
-                prompts.append("Give a clear, detailed answer: what does \(base) mean?")
-            } else {
-                prompts.append(base)
-                prompts.append("Please answer this clearly and in detail: \(base)")
+            // Preserve context across long sessions: combine a rolling summary of
+            // older turns, semantically recalled earlier messages, and the recent
+            // buffer — instead of a flat "last 10 messages" window.
+            let (priorMessages, storedSummary, storedWatermark) = await MainActor.run {
+                () -> ([ChatMessage], String, Int) in
+                let prior = Array(self.messages.dropLast(1))
+                let conv = self.store.conversation(by: self.conversationId)
+                return (prior, conv?.summary ?? "", conv?.memoryWatermark ?? 0)
             }
+            let conversationContext = self.memory.buildContext(
+                history: priorMessages,
+                summary: storedSummary,
+                watermark: storedWatermark,
+                query: base
+            )
 
             if Task.isCancelled {
                 await MainActor.run {
@@ -95,7 +102,14 @@ final class ChatViewModel: ObservableObject {
                 return
             }
 
-            let response = await bestResponse(prompts: prompts, imageContext: imageContext, conversationContext: conversationContext)
+            // Single orchestrated request (no racy parallel session mutation).
+            let result = await chatService.respond(
+                to: base,
+                imageContext: imageContext,
+                imageAttached: imageToSend != nil,
+                conversationContext: conversationContext,
+                config: config
+            )
             if Task.isCancelled {
                 await MainActor.run {
                     isLoading = false
@@ -103,7 +117,27 @@ final class ChatViewModel: ObservableObject {
                 }
                 return
             }
-            await animateAssistantResponse(response)
+            await animateAssistantResponse(result.text, sources: result.sources)
+
+            // Fold aged-out turns into long-term memory so future turns in this
+            // (possibly very long) session still remember earlier facts.
+            await self.updateMemoryIfNeeded()
+        }
+    }
+
+    /// Update the persisted rolling summary once enough turns have aged out of the
+    /// recent buffer. Runs off the critical path (after the reply is shown).
+    private func updateMemoryIfNeeded() async {
+        let (snapshot, summary, watermark) = await MainActor.run {
+            () -> ([ChatMessage], String, Int) in
+            let conv = self.store.conversation(by: self.conversationId)
+            return (self.messages, conv?.summary ?? "", conv?.memoryWatermark ?? 0)
+        }
+        guard let updated = await memory.maintain(messages: snapshot, summary: summary, watermark: watermark) else {
+            return
+        }
+        await MainActor.run {
+            self.store.update(id: self.conversationId, summary: updated.summary, memoryWatermark: updated.watermark)
         }
     }
 
@@ -117,26 +151,28 @@ final class ChatViewModel: ObservableObject {
     func clearChat() {
         inFlightTask?.cancel()
         inFlightTask = nil
-        chatService.resetSession()
         messages = []
         errorMessage = nil
         didCreateTitle = false
     }
 
     private func saveToStore(title: String? = nil) {
-        let titleToUse = title ?? store.conversation(by: conversationId)?.title ?? "New chat"
+        let existing = store.conversation(by: conversationId)
+        let titleToUse = title ?? existing?.title ?? "New chat"
         let conv = Conversation(
             id: conversationId,
             title: titleToUse,
             messages: messages,
-            createdAt: store.conversation(by: conversationId)?.createdAt ?? Date(),
-            updatedAt: Date()
+            createdAt: existing?.createdAt ?? Date(),
+            updatedAt: Date(),
+            summary: existing?.summary ?? "",
+            memoryWatermark: existing?.memoryWatermark ?? 0
         )
         store.save(conv)
     }
 
     /// Animate the assistant response word by word for a more conversational feel.
-    private func animateAssistantResponse(_ fullText: String) async {
+    private func animateAssistantResponse(_ fullText: String, sources: [WebSource] = []) async {
         let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             await MainActor.run {
@@ -147,7 +183,7 @@ final class ChatViewModel: ObservableObject {
         }
 
         let words = trimmed.split(separator: " ")
-        var message = ChatMessage(role: .assistant, content: "")
+        var message = ChatMessage(role: .assistant, content: "", sources: sources)
 
         await MainActor.run {
             messages.append(message)
@@ -170,73 +206,6 @@ final class ChatViewModel: ObservableObject {
         }
     }
 
-    /// Format prior messages into a string for conversation context (last 10 messages to limit size).
-    private static func formatConversationContext(_ messages: [ChatMessage]) -> String? {
-        let limited = messages.suffix(10)
-        guard !limited.isEmpty else { return nil }
-        let lines = limited.map { msg in
-            let label = msg.role == .user ? "User" : "Assistant"
-            return "\(label): \(msg.content)"
-        }
-        return lines.joined(separator: "\n")
-    }
-
-    /// Fire all prompt variants in parallel when no context; with context, send once to preserve conversation.
-    /// If none are good, return the longest one. If all fail, return a fallback message.
-    private func bestResponse(prompts: [String], imageContext: String?, conversationContext: String?) async -> String {
-        let service = chatService
-        let hasContext = conversationContext.map { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty } ?? false
-
-        if hasContext {
-            // Preserve context: one request with the user's prompt and prior conversation; no session reset.
-            let prompt = prompts.first ?? ""
-            guard let reply = try? await service.respond(to: prompt, imageContext: imageContext, conversationContext: conversationContext) else {
-                return "I wasn't able to answer that. Please try rephrasing your question."
-            }
-            return reply
-        }
-
-        // No prior context: run variants in parallel (each with a fresh session).
-        let results: [(String, String?)] = await withTaskGroup(of: (String, String?).self, returning: [(String, String?)].self) { group in
-            for prompt in prompts {
-                group.addTask {
-                    service.resetSession()
-                    let reply = try? await service.respond(to: prompt, imageContext: imageContext, conversationContext: nil)
-                    return (prompt, reply)
-                }
-            }
-            var collected: [(String, String?)] = []
-            for await result in group {
-                collected.append(result)
-            }
-            return collected
-        }
-
-        let replies = results.compactMap { $0.1 }
-        if let good = replies.first(where: { isGoodResponse($0) }) {
-            return good
-        }
-        if let longest = replies.filter({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
-            .max(by: { $0.count < $1.count }) {
-            return longest
-        }
-        return "I wasn't able to answer that. Please try rephrasing your question."
-    }
-
-    /// Heuristic: a response is "good" if it's long enough and doesn't look like a refusal.
-    private func isGoodResponse(_ text: String) -> Bool {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.count < 20 { return false }
-        let lower = trimmed.lowercased()
-        let refusals = ["i can't", "i cannot", "i'm unable", "i am unable", "sorry, i",
-                        "i don't have", "i do not have", "not able to help",
-                        "couldn't complete", "could not complete"]
-        for refusal in refusals {
-            if lower.hasPrefix(refusal) { return false }
-        }
-        return true
-    }
-
     /// Run on-device OCR for an attached image and return detected text (if any).
     private func extractText(from data: Data) async -> String? {
         await withCheckedContinuation { continuation in
@@ -250,10 +219,14 @@ final class ChatViewModel: ObservableObject {
                     do {
                         try handler.perform([request])
                         if let observations = request.results {
-                            let strings = observations.compactMap { $0.topCandidates(1).first?.string }
-                            if !strings.isEmpty {
-                                result = strings.joined(separator: " ")
+                            // Preserve layout (rows/columns) instead of flattening
+                            // to a single space-joined string.
+                            let fragments = observations.compactMap { obs -> OCRTextBuilder.Fragment? in
+                                guard let text = obs.topCandidates(1).first?.string else { return nil }
+                                return OCRTextBuilder.Fragment(text: text, box: obs.boundingBox)
                             }
+                            let assembled = OCRTextBuilder.assemble(fragments)
+                            if !assembled.isEmpty { result = assembled }
                         }
                     } catch {
                         // Ignore OCR errors; we'll fall back to the default question.

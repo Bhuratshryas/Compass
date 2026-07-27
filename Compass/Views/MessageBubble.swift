@@ -48,7 +48,45 @@ struct MessageBubble: View {
                     .background(isUser ? CompassTheme.userBubble : CompassTheme.assistantBubble)
                     .clipShape(RoundedRectangle(cornerRadius: CompassTheme.bubbleRadius))
             }
+            if !isUser && !message.sources.isEmpty {
+                sourcesView
+            }
         }
+    }
+
+    /// Perplexity-style numbered source chips shown under a grounded answer.
+    private var sourcesView: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Sources")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(CompassTheme.textTertiary)
+            ForEach(message.sources) { source in
+                Link(destination: URL(string: source.url) ?? URL(string: "https://duckduckgo.com")!) {
+                    HStack(alignment: .top, spacing: 6) {
+                        Text("[\(source.id)]")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(CompassTheme.primary)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(source.title)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(CompassTheme.textPrimary)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
+                            Text(source.host)
+                                .font(.system(size: 11, weight: .regular))
+                                .foregroundStyle(CompassTheme.textTertiary)
+                                .lineLimit(1)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .frame(maxWidth: CompassTheme.bubbleMaxWidth + 40, alignment: .leading)
+        .background(CompassTheme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     /// Render simple markdown-style bold for segments wrapped in ** **.

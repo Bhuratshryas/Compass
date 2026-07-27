@@ -34,11 +34,13 @@ final class ConversationStore: ObservableObject {
         persist()
     }
 
-    func update(id: UUID, title: String? = nil, messages: [ChatMessage]? = nil) {
+    func update(id: UUID, title: String? = nil, messages: [ChatMessage]? = nil, summary: String? = nil, memoryWatermark: Int? = nil) {
         guard let index = conversations.firstIndex(where: { $0.id == id }) else { return }
         var conv = conversations[index]
         if let title = title { conv.title = title }
         if let messages = messages { conv.messages = messages }
+        if let summary = summary { conv.summary = summary }
+        if let memoryWatermark = memoryWatermark { conv.memoryWatermark = memoryWatermark }
         conv.updatedAt = Date()
         conversations[index] = conv
         conversations.sort { $0.updatedAt > $1.updatedAt }

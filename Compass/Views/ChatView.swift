@@ -12,9 +12,6 @@ struct ChatView: View {
     var onNewChat: () -> Void
 
     init(chatService: ChatServiceProtocol, store: ConversationStore, conversationId: UUID, initialMessages: [ChatMessage] = [], onBack: @escaping () -> Void, onNewChat: @escaping () -> Void) {
-        // Reset the underlying chat service session whenever a chat view is created,
-        // so each chat starts with a fresh context.
-        chatService.resetSession()
         _viewModel = StateObject(wrappedValue: ChatViewModel(chatService: chatService, store: store, conversationId: conversationId, initialMessages: initialMessages))
         self.onBack = onBack
         self.onNewChat = onNewChat

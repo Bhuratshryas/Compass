@@ -20,6 +20,22 @@
 		A0335B203E1F3F32CC2E5231 /* CompassApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4975215099FEEC284458831F /* CompassApp.swift */; };
 		A7E1EBF3876BC32C9D682043 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B706139F27230205E4DB6004 /* ChatView.swift */; };
 		BD297DF8E80982F99446147A /* Conversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D0DC7FD9375742989DB8420 /* Conversation.swift */; };
+		FB0001000000000000000000 /* WebSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0001000000000000000000 /* WebSource.swift */; };
+		FB0002000000000000000000 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0002000000000000000000 /* NetworkMonitor.swift */; };
+		FB0003000000000000000000 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0003000000000000000000 /* AppSettings.swift */; };
+		FB0004000000000000000000 /* Orchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0004000000000000000000 /* Orchestrator.swift */; };
+		FB0005000000000000000000 /* SearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0005000000000000000000 /* SearchProvider.swift */; };
+		FB0006000000000000000000 /* DuckDuckGoSearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0006000000000000000000 /* DuckDuckGoSearchProvider.swift */; };
+		FB0007000000000000000000 /* BraveSearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0007000000000000000000 /* BraveSearchProvider.swift */; };
+		FB0008000000000000000000 /* Reranker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0008000000000000000000 /* Reranker.swift */; };
+		FB0009000000000000000000 /* LanguageReasoner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0009000000000000000000 /* LanguageReasoner.swift */; };
+		FB000A000000000000000000 /* QueryPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA000A000000000000000000 /* QueryPlanner.swift */; };
+		FB000B000000000000000000 /* RetrievalAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA000B000000000000000000 /* RetrievalAgent.swift */; };
+		FB000C000000000000000000 /* SynthesisAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA000C000000000000000000 /* SynthesisAgent.swift */; };
+		FB000D000000000000000000 /* VerifierAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA000D000000000000000000 /* VerifierAgent.swift */; };
+		FB000E000000000000000000 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA000E000000000000000000 /* SettingsView.swift */; };
+		FB000F000000000000000000 /* OCRTextBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA000F000000000000000000 /* OCRTextBuilder.swift */; };
+		FB0010000000000000000000 /* ConversationMemory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0010000000000000000000 /* ConversationMemory.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +53,22 @@
 		B706139F27230205E4DB6004 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		DC6FC7EEE53793DC3657561F /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		FC16902E3122435306F80336 /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
+		FA0001000000000000000000 /* WebSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSource.swift; sourceTree = "<group>"; };
+		FA0002000000000000000000 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		FA0003000000000000000000 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		FA0004000000000000000000 /* Orchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Orchestrator.swift; sourceTree = "<group>"; };
+		FA0005000000000000000000 /* SearchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchProvider.swift; sourceTree = "<group>"; };
+		FA0006000000000000000000 /* DuckDuckGoSearchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuckDuckGoSearchProvider.swift; sourceTree = "<group>"; };
+		FA0007000000000000000000 /* BraveSearchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BraveSearchProvider.swift; sourceTree = "<group>"; };
+		FA0008000000000000000000 /* Reranker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reranker.swift; sourceTree = "<group>"; };
+		FA0009000000000000000000 /* LanguageReasoner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageReasoner.swift; sourceTree = "<group>"; };
+		FA000A000000000000000000 /* QueryPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryPlanner.swift; sourceTree = "<group>"; };
+		FA000B000000000000000000 /* RetrievalAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetrievalAgent.swift; sourceTree = "<group>"; };
+		FA000C000000000000000000 /* SynthesisAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynthesisAgent.swift; sourceTree = "<group>"; };
+		FA000D000000000000000000 /* VerifierAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifierAgent.swift; sourceTree = "<group>"; };
+		FA000E000000000000000000 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		FA000F000000000000000000 /* OCRTextBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRTextBuilder.swift; sourceTree = "<group>"; };
+		FA0010000000000000000000 /* ConversationMemory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationMemory.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -55,8 +87,47 @@
 				DC6FC7EEE53793DC3657561F /* HomeView.swift */,
 				76DF19E89F08606AC09F893E /* InputBar.swift */,
 				316A477F10DBBB32FC15A29B /* MessageBubble.swift */,
+				FA000E000000000000000000 /* SettingsView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		AA0001000000000000000000 /* Search */ = {
+			isa = PBXGroup;
+			children = (
+				FA0005000000000000000000 /* SearchProvider.swift */,
+				FA0006000000000000000000 /* DuckDuckGoSearchProvider.swift */,
+				FA0007000000000000000000 /* BraveSearchProvider.swift */,
+			);
+			path = Search;
+			sourceTree = "<group>";
+		};
+		AA0002000000000000000000 /* Retrieval */ = {
+			isa = PBXGroup;
+			children = (
+				FA0008000000000000000000 /* Reranker.swift */,
+			);
+			path = Retrieval;
+			sourceTree = "<group>";
+		};
+		AA0003000000000000000000 /* Agents */ = {
+			isa = PBXGroup;
+			children = (
+				FA0009000000000000000000 /* LanguageReasoner.swift */,
+				FA000A000000000000000000 /* QueryPlanner.swift */,
+				FA000B000000000000000000 /* RetrievalAgent.swift */,
+				FA000C000000000000000000 /* SynthesisAgent.swift */,
+				FA000D000000000000000000 /* VerifierAgent.swift */,
+			);
+			path = Agents;
+			sourceTree = "<group>";
+		};
+		AA0004000000000000000000 /* Memory */ = {
+			isa = PBXGroup;
+			children = (
+				FA0010000000000000000000 /* ConversationMemory.swift */,
+			);
+			path = Memory;
 			sourceTree = "<group>";
 		};
 		9CA0E694D868C9C290A7043F /* ViewModels */ = {
@@ -72,6 +143,14 @@
 			children = (
 				A9048EEA0B521154067DCD69 /* ChatService.swift */,
 				914C40ABED55F56FE1038FD8 /* ConversationStore.swift */,
+				FA000F000000000000000000 /* OCRTextBuilder.swift */,
+				FA0002000000000000000000 /* NetworkMonitor.swift */,
+				FA0003000000000000000000 /* AppSettings.swift */,
+				FA0004000000000000000000 /* Orchestrator.swift */,
+				AA0001000000000000000000 /* Search */,
+				AA0002000000000000000000 /* Retrieval */,
+				AA0003000000000000000000 /* Agents */,
+				AA0004000000000000000000 /* Memory */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -81,6 +160,7 @@
 			children = (
 				FC16902E3122435306F80336 /* ChatMessage.swift */,
 				4D0DC7FD9375742989DB8420 /* Conversation.swift */,
+				FA0001000000000000000000 /* WebSource.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -193,6 +273,22 @@
 				45A33BCFBA80CE8E95507741 /* HomeView.swift in Sources */,
 				7A372B3A99FB7F577A374BC8 /* InputBar.swift in Sources */,
 				4365ABC5620A5DDBF9E693D1 /* MessageBubble.swift in Sources */,
+				FB0001000000000000000000 /* WebSource.swift in Sources */,
+				FB0002000000000000000000 /* NetworkMonitor.swift in Sources */,
+				FB0003000000000000000000 /* AppSettings.swift in Sources */,
+				FB0004000000000000000000 /* Orchestrator.swift in Sources */,
+				FB0005000000000000000000 /* SearchProvider.swift in Sources */,
+				FB0006000000000000000000 /* DuckDuckGoSearchProvider.swift in Sources */,
+				FB0007000000000000000000 /* BraveSearchProvider.swift in Sources */,
+				FB0008000000000000000000 /* Reranker.swift in Sources */,
+				FB0009000000000000000000 /* LanguageReasoner.swift in Sources */,
+				FB000A000000000000000000 /* QueryPlanner.swift in Sources */,
+				FB000B000000000000000000 /* RetrievalAgent.swift in Sources */,
+				FB000C000000000000000000 /* SynthesisAgent.swift in Sources */,
+				FB000D000000000000000000 /* VerifierAgent.swift in Sources */,
+				FB000E000000000000000000 /* SettingsView.swift in Sources */,
+				FB000F000000000000000000 /* OCRTextBuilder.swift in Sources */,
+				FB0010000000000000000000 /* ConversationMemory.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
